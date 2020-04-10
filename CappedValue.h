@@ -7,6 +7,16 @@ public:
   CappedValue(T value): m_value(value), m_valueMax(value), m_valueMin(T()){}
   CappedValue(T value, T valueMax, T valueMin): m_value(value), m_valueMax(valueMax), m_valueMin(valueMin){}
 
+  const T& GetMax() const
+  {
+    return m_valueMax;
+  }
+
+  const T& GetMin() const
+  {
+    return m_valueMin;
+  }
+
   const T& Get() const
   {
     return m_value;

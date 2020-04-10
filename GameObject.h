@@ -2,15 +2,16 @@
 
 #include "CappedValue.h"
 #include "Sprite.h"
+#include "Movement.h"
 
 
 enum class GameObjectType
 {
   Terra_Spaceship,
+  Terra_Missile,
   Alien_Medium,
   Alien_Heavy,
-  Alien_Nimble,
-  Terra_Missile
+  Alien_Nimble
 };
 
 enum class Faction
@@ -23,7 +24,7 @@ enum class Faction
 class GameObject
 {
   Sprite m_sprite;
-  Point m_speed;
+  Movement m_movement;
   bool m_isDespawnPending;
   bool m_collided{false};
   CappedValue<int> m_hp;
@@ -37,19 +38,25 @@ class GameObject
     m_sprite.Move(dx, dy);
   }
 public:
-  GameObject(Sprite s, int hp, int impact, GameObjectType type, Faction faction): m_sprite{s}, m_hp(hp), m_impact(impact), m_type(type), m_faction(faction), m_isDespawnPending(false){}
+  GameObject(Sprite s, int hp, int impact, Movement m, GameObjectType type, Faction faction): m_sprite{s}, m_hp(hp), m_impact(impact), m_movement(m), m_type(type), m_faction(faction), m_isDespawnPending(false){}
   
   void Update(int dt)
   {
     m_collided = false;
-    m_sprite.Hide();    
-    Move(m_speed.x, m_speed.y);
+    m_sprite.Hide();
+    m_movement.Update(); 
+    Move(m_movement.GetDX(), m_movement.GetDY());
     m_sprite.Draw();
   }
 
-  void SetSpeed(Point s)
+  void SetMovement(Movement m)
   {
-    m_speed = s;
+    m_movement = m;
+  }
+
+  Movement& GetMovement()
+  {
+    return m_movement;
   }
 
   GameObjectType GetType() const
@@ -65,6 +72,11 @@ public:
   int GetHP() const
   {
     return m_hp.Get();
+  }
+
+  int GetScore() const
+  {
+    return m_hp.GetMax();
   }
 
   int GetImpact() const
