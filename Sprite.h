@@ -71,11 +71,19 @@ public:
   {
     return m_dirIsUp;
   }
+
+  Rect GetPositionAfterMove(int dx, int dy)
+  {
+    Rect newPos = m_rect;
+    newPos.x += dx;
+    newPos.y += dy;
+
+    return newPos;
+  }
   
   void Move(int dx, int dy)
   {
-    m_rect.x += dx;
-    m_rect.y += dy;
+    m_rect = GetPositionAfterMove(dx, dy);
   }
 
   const Rect& GetRect() const

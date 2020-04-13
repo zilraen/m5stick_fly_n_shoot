@@ -25,6 +25,7 @@ class GameObject
 {
   Sprite m_sprite;
   Movement m_movement;
+  Rect m_movementLimitation;
   bool m_isDespawnPending;
   bool m_collided{false};
   CappedValue<int> m_hp;
@@ -35,10 +36,23 @@ class GameObject
   void Move(int dx, int dy)
   {
     m_sprite.SetDirIsUp(dy <= 0);
-    m_sprite.Move(dx, dy);
+
+    if(m_movementLimitation.h > 0)
+    {
+      Rect newPosition = m_sprite.GetPositionAfterMove(dx, dy);
+
+      if(newPosition.IsColliding(m_movementLimitation))
+      {
+        m_sprite.Move(dx, dy);
+      }
+    }
+    else
+    {
+      m_sprite.Move(dx, dy);
+    }
   }
 public:
-  GameObject(Sprite s, int hp, int impact, Movement m, GameObjectType type, Faction faction): m_sprite{s}, m_hp(hp), m_impact(impact), m_movement(m), m_type(type), m_faction(faction), m_isDespawnPending(false){}
+  GameObject(Sprite s, int hp, int impact, Movement m, GameObjectType type, Faction faction): m_sprite{s}, m_hp(hp), m_impact(impact), m_movement(m), m_type(type), m_faction(faction), m_isDespawnPending(false), m_movementLimitation{0, 0, 0, 0}{}
   
   void Update(int dt)
   {
@@ -57,6 +71,11 @@ public:
   Movement& GetMovement()
   {
     return m_movement;
+  }
+
+  void LimitMovement(Rect limit)
+  {
+    m_movementLimitation = limit;
   }
 
   GameObjectType GetType() const

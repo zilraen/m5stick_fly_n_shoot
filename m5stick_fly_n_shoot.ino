@@ -4,12 +4,14 @@
 #include "geometry.h"
 #include "World.h"
 #include "BatteryData.h"
-
-const int buttonPin = 2;     
+#include "Countdown.h"
 
 // m5stickC has 80x160 screen
 Rect g_screen{0, 0, 80, 160};
 World g_world;
+const int k_maxEnemies = 5;
+
+Countdown g_inputDelay;
 
 const int fps = 25;
 
@@ -20,7 +22,7 @@ void renderWidgets()
   M5.Lcd.setTextColor(TFT_WHITE, BCKGRDCOL);
   M5.Lcd.setTextSize(1);
   M5.Lcd.setCursor(3, 3, 1);
-  M5.Lcd.printf("%d", g_world.GetScore());
+  M5.Lcd.printf("%d ", g_world.GetScore());
 
   BatteryData batLevel = BatteryData::GetBatteryLevel();
   int color = TFT_WHITE;
@@ -70,6 +72,43 @@ void renderWidgets()
   }
 }
 
+void processInput()
+{
+  float accelX = 0.f, accelY = 0.f, accelZ = 0.f;
+  M5.IMU.getAccelData(&accelX,&accelY,&accelZ);
+
+  const int k_speedY = 2;
+  const int k_sensitivity = 10;
+  
+  int impulse = accelX * k_sensitivity;
+  if(impulse < 0)
+  {
+    impulse = k_speedY;
+  }
+  else if(impulse > 0)
+  {
+    impulse = -k_speedY;
+  }
+  g_world.AddImpulseToMC(impulse, 0);
+  
+  if(g_inputDelay.Update(delta))
+  {
+    if(digitalRead(BUTTON_B_PIN) == LOW)
+    {
+      g_world.SpawnMissileAttack(5);
+      g_inputDelay.Start(1000);
+    }
+
+    if(digitalRead(M5_BUTTON_HOME) == LOW)
+    {
+      g_world.SpawnMissileAttack(1);
+      g_inputDelay.Start(300);
+    }
+  }
+}
+
+
+
 void setup()
 {
   // put your setup code here, to run once:
@@ -77,19 +116,28 @@ void setup()
   M5.begin();
  
   pinMode(M5_BUTTON_HOME, INPUT);
+  pinMode(BUTTON_B_PIN, INPUT);
+  
+  M5.IMU.Init();
 
   M5.Lcd.fillScreen(BCKGRDCOL);
   current_time = millis();
   
   g_world.SetScreen(g_screen);
-  g_world.Populate(10);
+  g_world.Populate(k_maxEnemies);
 }
 
 void loop()
 {
   // put your main code here, to run repeatedly:
   
-  g_world.Update(0);
+  processInput();
+  
+  if(g_world.Update(delta) == World::State::Over)
+  {
+    M5.Lcd.fillScreen(BCKGRDCOL);
+    g_world.Populate(k_maxEnemies);
+  }
   
   renderWidgets();
   
