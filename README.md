@@ -2,6 +2,9 @@
 Simple flying and shooting 2d game for m5stickc
 
 Controls:
+
 Button A: Shoot
+
 Button B: Launch missile volley
+
 Tilt Left/Right: Move player's ship
