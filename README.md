@@ -1,7 +1,7 @@
 # m5stick_fly_n_shoot
 Simple flying and shooting 2d game for m5stickc
 
-Controls:
+# Controls:
 
 Button A: Shoot
 
