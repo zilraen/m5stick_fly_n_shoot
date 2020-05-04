@@ -15,7 +15,7 @@ Countdown g_inputDelay;
 
 const int fps = 25;
 
-double delta, old_time, current_time;
+double frameBegin, frameEnd, frameFormer;
 
 void renderWidgets()
 {
@@ -72,7 +72,7 @@ void renderWidgets()
   }
 }
 
-void processInput()
+void processInput(int dt)
 {
   float accelX = 0.f, accelY = 0.f, accelZ = 0.f;
   M5.IMU.getAccelData(&accelX,&accelY,&accelZ);
@@ -91,7 +91,7 @@ void processInput()
   }
   g_world.AddImpulseToMC(impulse, 0);
   
-  if(g_inputDelay.Update(delta))
+  if(g_inputDelay.Update(dt))
   {
     if(digitalRead(BUTTON_B_PIN) == LOW)
     {
@@ -121,7 +121,6 @@ void setup()
   M5.IMU.Init();
 
   M5.Lcd.fillScreen(BCKGRDCOL);
-  current_time = millis();
   
   g_world.SetScreen(g_screen);
   g_world.Populate(k_maxEnemies);
@@ -130,10 +129,11 @@ void setup()
 void loop()
 {
   // put your main code here, to run repeatedly:
+  frameBegin = millis();
+  int dt = frameBegin - frameFormer;
+  processInput(dt);
   
-  processInput();
-  
-  if(g_world.Update(delta) == World::State::Over)
+  if(g_world.Update(dt) == World::State::Over)
   {
     M5.Lcd.fillScreen(BCKGRDCOL);
     g_world.Populate(k_maxEnemies);
@@ -141,11 +141,10 @@ void loop()
   
   renderWidgets();
   
-  old_time = current_time;
-  current_time = millis();
-  delta = current_time - old_time;
+  frameEnd = millis();
+  frameFormer = frameBegin;
   
-  int frameDelay = (1000 / fps) - delta;
+  int frameDelay = (1000 / fps) - (frameEnd - frameBegin);
   if(frameDelay > 0)
   {
     delay(frameDelay);
